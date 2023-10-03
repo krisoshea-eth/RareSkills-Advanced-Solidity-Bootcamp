@@ -1,92 +1,100 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.7;
 
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract LinearBondingCurve {
-    /**
-     * ------------------------------------ State variables ------------------------------------
-     */
+contract LinearBondingCurve is AccessControl {
+    // State variables
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    uint256 private _initialPrice; // Initial price of tokens in ETH
+    uint256 private _priceSlope; // The price increase per token sold
 
-    uint256 public constant INITIAL_PRICE = 1 ether; // The initial price of tokens in ETH (e.g., 0.001 ETH)
-    uint256 public constant INITIAL_SUPPLY = 0; // The initial supply of tokens set to 0.
-    uint256 public constant PRICE_SLOPE = 1 ether; // The price increase per token sold - fixed at 1 ether.
+    // Constants with added comments for clarity
+    uint256 private constant DECIMAL = 1000; // 3 fixed decimal points for precision
+    uint256 private constant SCALE = 1e18; // Scaling factor for token amounts
 
-    uint256 private constant DECIMAL = 1000; // 3 fixed decimal points
-    uint256 private constant SCALE = 1e18;
+    // Events
+    event TokensPurchased(uint256 indexed currentTokenSupplyInWei, uint256 indexed newTokenAmountToBuy, uint256 finalCost);
+    event TokensSold(uint256 indexed currentTokenSupplyInWei, uint256 indexed tokenAmountToSellInWei, uint256 ethReturnValue);
+    event ParametersUpdated(uint256 newInitialPrice, uint256 newPriceSlope);
 
-    /**
-     * ------------------------------------ Constructor ------------------------------------
-     */
-    constructor() {}
-
-    /**
-     * ------------------------------------ Internal functions ------------------------------------
-     */
-
-    /**
-     * Calculate how much does it cost in ETH to buy a certain amount of token
-     *  the formula to calculate it: Linear Bonding curve  y = x
-     *      ((new_token_amount_to_buy / 2) * (2 * _current_token_supply + new_token_amount_to_buy + 1))
-     * @param currentTokenSupplyInWei totalSupply of the token
-     * @param newTokenAmountToBuy the amount of new token to mint
-     *
-     * @return finalCost the require amount of ETH to buy {newTokenAmountToBuy} right now!
-     */
-    function tokenToEthBuy(uint256 currentTokenSupplyInWei, uint256 newTokenAmountToBuy)
-        internal
-        pure
-        returns (uint256 finalCost)
-    {
-        uint256 _tokenSupplyInEther = currentTokenSupplyInWei / SCALE;
-
-        uint256 _a = ((newTokenAmountToBuy * DECIMAL) / 2);
-        uint256 _b = (2 * _tokenSupplyInEther);
-        uint256 _c = (newTokenAmountToBuy + 1);
-
-        finalCost = ((_a * (_b + _c)) / DECIMAL) * SCALE;
+    // Constructor
+    constructor() {
+        _setupRole(ADMIN_ROLE, msg.sender);
+        _initialPrice = 1 ether; // Default initial price
+        _priceSlope = 1 ether; // Default price slope
     }
 
-    /**
-     * Calculate how many token with the {depositedEthAmount} can be bought in current Curve status
-     * @param currentSupplyInWei the current token totalSupply() in WEI
-     * @param depositedEthAmount the amount of deposited ETH
-     *
-     * @notice this implementation is not scalable and can only be used to buy at most 14k token.
-     * @custom:todo Replace it with a scalable advanced math formula
-     *
-     * @return tokenCount the amount of token that can be bought with the {depositedEthAmount} ETH
-     */
-    function howManyTokenEthCanBuy(uint256 currentSupplyInWei, uint256 depositedEthAmount)
-        internal
-        pure
-        returns (uint256 tokenCount)
-    {
-        for (uint256 i = 0;; i++) {
-            uint256 _cost = tokenToEthBuy(currentSupplyInWei, i);
-            if (_cost >= depositedEthAmount) {
-                return i;
-            }
+    // External functions to update parameters, only accessible by admin
+    function updateParameters(uint256 newInitialPrice, uint256 newPriceSlope) external onlyRole(ADMIN_ROLE) {
+        _initialPrice = newInitialPrice;
+        _priceSlope = newPriceSlope;
+        emit ParametersUpdated(newInitialPrice, newPriceSlope);
+    }
+
+    // Getter functions for state variables
+    function initialPrice() public view returns (uint256) {
+        return _initialPrice;
+    }
+
+    function priceSlope() public view returns (uint256) {
+        return _priceSlope;
+    }
+
+    // Internal functions
+
+    // Calculate the cost in ETH for buying a certain amount of tokens
+    // Uses the formula: ((newTokenAmountToBuy / 2) * (2 * currentTokenSupplyInWei + newTokenAmountToBuy + 1))
+    function tokenToEthBuy(uint256 currentTokenSupplyInWei, uint256 newTokenAmountToBuy) internal returns (uint256) {
+        require(newTokenAmountToBuy > 0, "The amount of tokens to buy must be greater than zero");
+        uint256 tokenSupplyInEther = currentTokenSupplyInWei / SCALE;
+
+        uint256 a = (newTokenAmountToBuy * DECIMAL) / 2;
+        uint256 b = tokenSupplyInEther * 2;
+        uint256 c = newTokenAmountToBuy + 1;
+
+        uint256 finalCost = ((a * (b + c)) / DECIMAL) * SCALE;
+
+        emit TokensPurchased(currentTokenSupplyInWei, newTokenAmountToBuy, finalCost);
+        return finalCost;
+    }
+
+    // Calculate the number of tokens that can be bought with a given amount of ETH
+    function howManyTokenEthCanBuy(uint256 currentSupplyInWei, uint256 depositedEthAmount) internal returns (uint256) {
+        uint256 currentSupplyInEther = currentSupplyInWei / SCALE;
+        uint256 depositedEthInEther = depositedEthAmount / SCALE;
+
+        uint256 discriminant = sqrt((4 * currentSupplyInEther * currentSupplyInEther) + (8 * depositedEthInEther));
+        uint256 newTokenAmountToBuy = (discriminant - (2 * currentSupplyInEther)) / 2;
+
+        return newTokenAmountToBuy;
+    }
+
+    // Calculate the amount of ETH to return for selling a certain amount of tokens
+    function tokenToEthSell(uint256 currentTokenSupplyInWei, uint256 tokenAmountToSellInWei) internal returns (uint256) {
+        require(tokenAmountToSellInWei > 0, "The amount of tokens to sell must be greater than zero");
+
+        uint256 amountToSell = tokenAmountToSellInWei / SCALE;
+        uint256 currentSupply = currentTokenSupplyInWei / SCALE;
+
+        uint256 newTokenSupplyAfterTheSale = currentSupply - amountToSell;
+
+        uint256 ethReturnValue = tokenToEthBuy(newTokenSupplyAfterTheSale, amountToSell);
+
+        emit TokensSold(currentTokenSupplyInWei, tokenAmountToSellInWei, ethReturnValue);
+        return ethReturnValue;
+    }
+
+    // Helper function to calculate square root
+    function sqrt(uint256 x) internal pure returns (uint256 y) {
+        if (x == 0) return 0;
+        else if (x <= 3) return 1;
+        uint256 z = (x + 1) / 2;
+        y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
         }
     }
-
-    /**
-     * calculate the amount of Reserve ($ETH) to return for token sale
-     * @param currentTokenSupplyInWei the current token supply
-     * @param tokenAmountToSellInWei the amount of token to sell
-     *
-     * @return ethReturnValue the amount of ETH to return for selling {tokenAmountToSellInWei} token
-     */
-    function tokenToEthSell(uint256 currentTokenSupplyInWei, uint256 tokenAmountToSellInWei)
-        internal
-        pure
-        returns (uint256 ethReturnValue)
-    {
-        uint256 _amountToSell = tokenAmountToSellInWei / SCALE;
-        uint256 _currentSupply = currentTokenSupplyInWei / SCALE;
-
-        uint256 _newTokenSupplyAfterTheSale = _currentSupply - _amountToSell;
-
-        ethReturnValue = tokenToEthBuy(_newTokenSupplyAfterTheSale, _amountToSell);
-    }
 }
+

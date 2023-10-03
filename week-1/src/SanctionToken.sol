@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts@4.9.3/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts@4.9.3/access/AccessControl.sol";
-import "@openzeppelin/contracts@4.9.3/token/ERC20/extensions/ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
-contract MyToken is ERC20, AccessControl, ERC20Permit {
+contract SanctionToken is ERC20, AccessControl, ERC20Permit {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant SANCTION_ROLE = keccak256("SANCTION_ROLE");
-    address[] public bannedList;
+    
+    mapping(address => bool) public isBanned;
 
-    constructor() ERC20("MyToken", "MTK") ERC20Permit("MyToken") {
+    constructor() ERC20("SanctionToken", "MTK") ERC20Permit("SanctionToken") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(SANCTION_ROLE, msg.sender);
@@ -21,7 +22,11 @@ contract MyToken is ERC20, AccessControl, ERC20Permit {
     }
 
     function ban(address bannedAddress) public onlyRole(SANCTION_ROLE) {
-        bannedList.push(bannedAddress);
+        isBanned[bannedAddress] = true;
+    }
+
+    function unban(address unbannedAddress) public onlyRole(SANCTION_ROLE) {
+        isBanned[unbannedAddress] = false;
     }
 
     function isBanned(address user) public view returns (bool) {
@@ -33,10 +38,9 @@ contract MyToken is ERC20, AccessControl, ERC20Permit {
         return false;
     }
 
-    function transferAllow(address recipient, uint256 amount) external returns (bool) {
-        require(!isBanned(msg.sender), "Sender is banned");
-        require(!isBanned(recipient), "Recipient banned");
-        _transfer(msg.sender, recipient, amount);
-        return true;
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
+        require(!isBanned[from], "Sender is banned");
+        require(!isBanned[to], "Recipient is banned");
+        super._beforeTokenTransfer(from, to, amount);
     }
 }
