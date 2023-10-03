@@ -1,5 +1,6 @@
 The SafeERC20 library is part of the OpenZeppelin smart contracts library and is designed to provide a safer and more secure way to interact with ERC20 tokens. ERC20 is a standard interface for ERC20 tokens, which are widely used fungible tokens on the Ethereum blockchain. However, the ERC20 standard has some quirks and potential pitfalls that can lead to bugs or vulnerabilities if not handled carefully. Here's why SafeERC20 exists and when it should be used:
 
+
 Problems with Raw ERC20 Interactions
 Inconsistent Return Values: The ERC20 standard does not specify the return value for the transfer, transferFrom, and approve methods. Some implementations return a boolean value indicating success or failure, while others revert the transaction on failure. This inconsistency makes it challenging to write code that interacts with arbitrary ERC20 tokens.
 
@@ -30,9 +31,8 @@ Gas Optimization: While not its primary goal, SafeERC20 can sometimes be optimiz
 
 Function Wrapping: SafeERC20 wraps around the native ERC20 functions but adds revert conditions. This is especially useful for tokens that don't return a boolean value upon the execution of functions like transfer.
 
-Gas Considerations: SafeERC20 can sometimes be more gas-efficient by avoiding unnecessary checks. However, it's essential to profile the gas costs for your specific use-case.
-
 Library vs. Inheritance: SafeERC20 is often used as a library, meaning it doesn't add to the inheritance tree of your contract, keeping the codebase clean and modular.
+
 
 When to Use SafeERC20
 Interacting with Arbitrary Tokens: If your contract is designed to work with any ERC20 token, using SafeERC20 is almost a must to handle inconsistencies in different token implementations.
