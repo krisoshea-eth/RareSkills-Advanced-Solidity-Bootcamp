@@ -47,30 +47,31 @@ contract LinearBondingCurveTest is Test {
         assertEq(curve.tokenToEthBuy(0, 0), 0, "Cost should be zero for zero tokens");
         assertEq(curve.tokenToEthSell(0, 0), 0, "ETH return should be zero for zero tokens");
     }
-    
+
     function testRevertingTransactions() public {
-        bool success = try curve.updateParameters(0, 1 ether);
+        (bool success,) = address(curve).call(abi.encodeWithSelector(curve.updateParameters.selector, 0, 1 ether));
         require(!success, "Updating with zero initial price should fail");
-    
-        success = try curve.tokenToEthBuy(0, 0);
+
+        (success,) = address(curve).call(abi.encodeWithSelector(curve.tokenToEthBuy.selector, 0, 0));
         require(!success, "Buying zero tokens should fail");
-    
-        success = try curve.tokenToEthSell(0, 0);
+
+        (success,) = address(curve).call(abi.encodeWithSelector(curve.tokenToEthSell.selector, 0, 0));
         require(!success, "Selling zero tokens should fail");
     }
-    
+
     function testAdminOnlyFunctions() public {
         LinearBondingCurve anotherCurve = new LinearBondingCurve();
-        bool success = try anotherCurve.updateParameters(2 ether, 2 ether);
+        (bool success,) =
+            address(anotherCurve).call(abi.encodeWithSelector(anotherCurve.updateParameters.selector, 2 ether, 2 ether));
         require(!success, "Only admin should be able to update parameters");
     }
-    
+
     function testEvents() public {
         expectEvent("ParametersUpdated", curve.updateParameters(2 ether, 2 ether));
         expectEvent("TokensPurchased", curve.tokenToEthBuy(0, 10));
         expectEvent("TokensSold", curve.tokenToEthSell(100, 10));
     }
-    
+
     function testComplexScenario() public {
         curve.updateParameters(2 ether, 2 ether);
         uint256 cost = curve.tokenToEthBuy(0, 10);
@@ -84,8 +85,7 @@ contract LinearBondingCurveTest is Test {
         gasUsed -= gasleft();
         console.log("Gas Used for tokenToEthBuy: ", gasUsed);
     }
-    
-    
+
     // Helper function to assert equality for uint256
     function assertEq(uint256 a, uint256 b) internal {
         require(a == b, "Test failed");

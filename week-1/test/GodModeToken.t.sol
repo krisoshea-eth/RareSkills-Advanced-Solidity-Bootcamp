@@ -72,46 +72,46 @@ contract MyTokenTest is Test {
         // Assign roles
         token.grantRole(MINTER_ROLE, alice);
         token.grantRole(GOD_MODE_ROLE, bob);
-    
+
         // Check roles
         assertTrue(token.hasRole(MINTER_ROLE, alice));
         assertTrue(token.hasRole(GOD_MODE_ROLE, bob));
-    
+
         // Revoke roles
         token.revokeRole(MINTER_ROLE, alice);
         token.revokeRole(GOD_MODE_ROLE, bob);
-    
+
         // Check roles again
         assertFalse(token.hasRole(MINTER_ROLE, alice));
         assertFalse(token.hasRole(GOD_MODE_ROLE, bob));
     }
-    
+
     function testFailMintToZeroAddress() public {
         token.mint(address(0), 1000);
     }
-    
+
     function testFailGodModeTransferToZeroAddress() public {
         token.mint(alice, 1000);
         token.transferGod(alice, address(0), 500);
     }
-    
+
     function testEvents() public {
         uint256 mintAmount = 1000;
         uint256 transferAmount = 500;
-    
+
         expectEventsExact(token);
         token.mint(alice, mintAmount);
         logsExpectMintEvent(alice, mintAmount);
-    
+
         token.transferGod(alice, bob, transferAmount);
         logsExpectTransferEvent(alice, bob, transferAmount);
     }
-    
+
     function logsExpectMintEvent(address to, uint256 amount) internal {
         log_named_address("LogMintTo:", to);
         log_named_uint("LogMintAmount:", amount);
     }
-    
+
     function logsExpectTransferEvent(address from, address to, uint256 amount) internal {
         log_named_address("LogTransferFrom:", from);
         log_named_address("LogTransferTo:", to);
@@ -124,6 +124,4 @@ contract MyTokenTest is Test {
         token.mint(alice, mintAmount);
         token.transferGod(alice, bob, transferAmount);
     }
-    
-    
 }

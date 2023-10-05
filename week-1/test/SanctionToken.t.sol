@@ -40,12 +40,12 @@ contract MySanctionTokenTest is Test {
     function testFailBannedUserCannotTransfer() public {
         sanctionToken.mint(user1, 1000);
         sanctionToken.ban(user1);
-        sanctionToken.transferFrom(user1, user2, 100);  // This should fail
+        sanctionToken.transferFrom(user1, user2, 100); // This should fail
     }
 
     function testFailCannotSendToBannedUser() public {
         sanctionToken.mint(user1, 1000);
         sanctionToken.ban(user2);
-        sanctionToken.transferFrom(user1, user2, 100);  // This should fail
+        sanctionToken.transferFrom(user1, user2, 100); // This should fail
     }
 }

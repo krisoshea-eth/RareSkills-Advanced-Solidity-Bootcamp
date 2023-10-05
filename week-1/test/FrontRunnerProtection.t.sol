@@ -56,5 +56,4 @@ contract PreventFrontRunnersTest is Test {
         preventFrontRunners.revokeRole(preventFrontRunners.ADMIN_ROLE(), newAdmin);
         assertFalse(preventFrontRunners.hasRole(preventFrontRunners.ADMIN_ROLE(), newAdmin));
     }
-    
 }

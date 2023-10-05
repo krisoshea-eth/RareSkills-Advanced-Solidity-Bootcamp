@@ -4,8 +4,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Escrow {
-    
-
     IERC20 public token;
 
     event DepositMade(address indexed depositor, address indexed recipient, uint256 amount);

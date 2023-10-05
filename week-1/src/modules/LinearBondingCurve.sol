@@ -2,6 +2,7 @@
 pragma solidity 0.8.7;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract LinearBondingCurve is AccessControl {
     // State variables
@@ -14,8 +15,12 @@ contract LinearBondingCurve is AccessControl {
     uint256 private constant SCALE = 1e18; // Scaling factor for token amounts
 
     // Events
-    event TokensPurchased(uint256 indexed currentTokenSupplyInWei, uint256 indexed newTokenAmountToBuy, uint256 finalCost);
-    event TokensSold(uint256 indexed currentTokenSupplyInWei, uint256 indexed tokenAmountToSellInWei, uint256 ethReturnValue);
+    event TokensPurchased(
+        uint256 indexed currentTokenSupplyInWei, uint256 indexed newTokenAmountToBuy, uint256 finalCost
+    );
+    event TokensSold(
+        uint256 indexed currentTokenSupplyInWei, uint256 indexed tokenAmountToSellInWei, uint256 ethReturnValue
+    );
     event ParametersUpdated(uint256 newInitialPrice, uint256 newPriceSlope);
 
     // Constructor
@@ -55,7 +60,6 @@ contract LinearBondingCurve is AccessControl {
 
         uint256 finalCost = ((a * (b + c)) / DECIMAL) * SCALE;
 
-        emit TokensPurchased(currentTokenSupplyInWei, newTokenAmountToBuy, finalCost);
         return finalCost;
     }
 
@@ -64,14 +68,17 @@ contract LinearBondingCurve is AccessControl {
         uint256 currentSupplyInEther = currentSupplyInWei / SCALE;
         uint256 depositedEthInEther = depositedEthAmount / SCALE;
 
-        uint256 discriminant = sqrt((4 * currentSupplyInEther * currentSupplyInEther) + (8 * depositedEthInEther));
+        uint256 discriminant = Math.sqrt((4 * currentSupplyInEther * currentSupplyInEther) + (8 * depositedEthInEther));
         uint256 newTokenAmountToBuy = (discriminant - (2 * currentSupplyInEther)) / 2;
 
         return newTokenAmountToBuy;
     }
 
     // Calculate the amount of ETH to return for selling a certain amount of tokens
-    function tokenToEthSell(uint256 currentTokenSupplyInWei, uint256 tokenAmountToSellInWei) internal returns (uint256) {
+    function tokenToEthSell(uint256 currentTokenSupplyInWei, uint256 tokenAmountToSellInWei)
+        internal
+        returns (uint256)
+    {
         require(tokenAmountToSellInWei > 0, "The amount of tokens to sell must be greater than zero");
 
         uint256 amountToSell = tokenAmountToSellInWei / SCALE;
@@ -81,20 +88,6 @@ contract LinearBondingCurve is AccessControl {
 
         uint256 ethReturnValue = tokenToEthBuy(newTokenSupplyAfterTheSale, amountToSell);
 
-        emit TokensSold(currentTokenSupplyInWei, tokenAmountToSellInWei, ethReturnValue);
         return ethReturnValue;
     }
-
-    // Helper function to calculate square root
-    function sqrt(uint256 x) internal pure returns (uint256 y) {
-        if (x == 0) return 0;
-        else if (x <= 3) return 1;
-        uint256 z = (x + 1) / 2;
-        y = x;
-        while (z < y) {
-            y = z;
-            z = (x / z + z) / 2;
-        }
-    }
 }
-

@@ -9,12 +9,14 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  *  where traders exploit foreknowledge of pending orders to place their own orders with higher gas,
  *  cutting ahead of the original order for profits.
  */
+
 contract PreventFrontRunners is AccessControl, ReentrancyGuard {
     /**
      * ------------------------------------ State variables ------------------------------------
      */
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     uint256 public maxGasPrice = 100 gwei; // Adjustable value
+
     event MaxGasPriceChanged(uint256 newMaxGasPrice, string etherUnit);
     event GasPriceEnforced(address indexed user, uint256 gasPrice);
 
