@@ -50,7 +50,7 @@ contract LinearBondingCurve is AccessControl {
 
     // Calculate the cost in ETH for buying a certain amount of tokens
     // Uses the formula: ((newTokenAmountToBuy / 2) * (2 * currentTokenSupplyInWei + newTokenAmountToBuy + 1))
-    function tokenToEthBuy(uint256 currentTokenSupplyInWei, uint256 newTokenAmountToBuy) internal returns (uint256) {
+    function tokenToEthBuy(uint256 currentTokenSupplyInWei, uint256 newTokenAmountToBuy) internal pure returns (uint256) {
         require(newTokenAmountToBuy > 0, "The amount of tokens to buy must be greater than zero");
         uint256 tokenSupplyInEther = currentTokenSupplyInWei / SCALE;
 
@@ -63,8 +63,13 @@ contract LinearBondingCurve is AccessControl {
         return finalCost;
     }
 
+    function testTokenToEthBuy(uint256 currentTokenSupplyInWei, uint256 newTokenAmountToBuy) public pure returns (uint256) {
+        return tokenToEthBuy(currentTokenSupplyInWei, newTokenAmountToBuy);
+    }
+    
+
     // Calculate the number of tokens that can be bought with a given amount of ETH
-    function howManyTokenEthCanBuy(uint256 currentSupplyInWei, uint256 depositedEthAmount) internal returns (uint256) {
+    function howManyTokenEthCanBuy(uint256 currentSupplyInWei, uint256 depositedEthAmount) internal pure returns (uint256) {
         uint256 currentSupplyInEther = currentSupplyInWei / SCALE;
         uint256 depositedEthInEther = depositedEthAmount / SCALE;
 
@@ -74,11 +79,12 @@ contract LinearBondingCurve is AccessControl {
         return newTokenAmountToBuy;
     }
 
+    function testHowManyTokenEthCanBuy(uint256 currentSupplyInWei, uint256 depositedEthAmount) public pure returns (uint256) {
+        return howManyTokenEthCanBuy(currentSupplyInWei, depositedEthAmount);
+    }
+
     // Calculate the amount of ETH to return for selling a certain amount of tokens
-    function tokenToEthSell(uint256 currentTokenSupplyInWei, uint256 tokenAmountToSellInWei)
-        internal
-        returns (uint256)
-    {
+    function tokenToEthSell(uint256 currentTokenSupplyInWei, uint256 tokenAmountToSellInWei) internal pure returns (uint256) {
         require(tokenAmountToSellInWei > 0, "The amount of tokens to sell must be greater than zero");
 
         uint256 amountToSell = tokenAmountToSellInWei / SCALE;
@@ -89,5 +95,9 @@ contract LinearBondingCurve is AccessControl {
         uint256 ethReturnValue = tokenToEthBuy(newTokenSupplyAfterTheSale, amountToSell);
 
         return ethReturnValue;
+    }
+
+    function testTokenToEthSell(uint256 currentTokenSupplyInWei, uint256 newTokenAmountToBuy) public pure returns (uint256) {
+        return tokenToEthSell(currentTokenSupplyInWei, newTokenAmountToBuy);
     }
 }

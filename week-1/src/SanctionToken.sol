@@ -11,6 +11,10 @@ contract SanctionToken is ERC20, AccessControl, ERC20Permit {
 
     mapping(address => bool) public isBanned;
 
+    event AddressBanned(address indexed bannedAddress);
+    event AddressUnbanned(address indexed unbannedAddress);
+    event TokensMinted(address indexed to, uint256 amount);
+
     constructor() ERC20("SanctionToken", "MTK") ERC20Permit("SanctionToken") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
@@ -19,23 +23,17 @@ contract SanctionToken is ERC20, AccessControl, ERC20Permit {
 
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
         _mint(to, amount);
+        emit TokensMinted(to, amount);
     }
 
     function ban(address bannedAddress) public onlyRole(SANCTION_ROLE) {
         isBanned[bannedAddress] = true;
+        emit AddressBanned(bannedAddress);
     }
 
     function unban(address unbannedAddress) public onlyRole(SANCTION_ROLE) {
         isBanned[unbannedAddress] = false;
-    }
-
-    function isBanned(address user) public view returns (bool) {
-        for (uint256 i = 0; i < bannedList.length; i++) {
-            if (bannedList[i] == user) {
-                return true;
-            }
-        }
-        return false;
+        emit AddressUnbanned(unbannedAddress);
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {

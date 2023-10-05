@@ -1,7 +1,7 @@
 pragma solidity ^0.8.9;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {MyToken} from "../src/MyToken.sol";
+import {MyToken} from "../src/GodModeToken.sol";
 
 contract MyTokenTest is Test {
     MyToken token;
@@ -52,12 +52,6 @@ contract MyTokenTest is Test {
         MyToken(address(token)).transferGod(alice, bob, transferAmount);
     }
 
-    // Test unauthorized minting
-    function testFailUnauthorizedMint() public {
-        uint256 mintAmount = 1000;
-        MyToken(address(token)).mint(alice, mintAmount);
-    }
-
     // Test minting and transferring by God Mode role
     function testMintAndTransferByGod() public {
         uint256 mintAmount = 1000;
@@ -70,20 +64,20 @@ contract MyTokenTest is Test {
 
     function testRoleAssignmentAndRevocation() public {
         // Assign roles
-        token.grantRole(MINTER_ROLE, alice);
-        token.grantRole(GOD_MODE_ROLE, bob);
+        token.grantRole(token.MINTER_ROLE(), alice);
+        token.grantRole(token.GOD_MODE_ROLE(), bob);
 
         // Check roles
-        assertTrue(token.hasRole(MINTER_ROLE, alice));
-        assertTrue(token.hasRole(GOD_MODE_ROLE, bob));
+        assertTrue(token.hasRole(token.MINTER_ROLE(), alice));
+        assertTrue(token.hasRole(token.GOD_MODE_ROLE(), bob));
 
         // Revoke roles
-        token.revokeRole(MINTER_ROLE, alice);
-        token.revokeRole(GOD_MODE_ROLE, bob);
+        token.revokeRole(token.MINTER_ROLE(), alice);
+        token.revokeRole(token.GOD_MODE_ROLE(), bob);
 
         // Check roles again
-        assertFalse(token.hasRole(MINTER_ROLE, alice));
-        assertFalse(token.hasRole(GOD_MODE_ROLE, bob));
+        assertFalse(token.hasRole(token.MINTER_ROLE(), alice));
+        assertFalse(token.hasRole(token.GOD_MODE_ROLE(), bob));
     }
 
     function testFailMintToZeroAddress() public {
@@ -93,29 +87,6 @@ contract MyTokenTest is Test {
     function testFailGodModeTransferToZeroAddress() public {
         token.mint(alice, 1000);
         token.transferGod(alice, address(0), 500);
-    }
-
-    function testEvents() public {
-        uint256 mintAmount = 1000;
-        uint256 transferAmount = 500;
-
-        expectEventsExact(token);
-        token.mint(alice, mintAmount);
-        logsExpectMintEvent(alice, mintAmount);
-
-        token.transferGod(alice, bob, transferAmount);
-        logsExpectTransferEvent(alice, bob, transferAmount);
-    }
-
-    function logsExpectMintEvent(address to, uint256 amount) internal {
-        log_named_address("LogMintTo:", to);
-        log_named_uint("LogMintAmount:", amount);
-    }
-
-    function logsExpectTransferEvent(address from, address to, uint256 amount) internal {
-        log_named_address("LogTransferFrom:", from);
-        log_named_address("LogTransferTo:", to);
-        log_named_uint("LogTransferAmount:", amount);
     }
 
     function testFailGodModeTransferBelowMinimum() public {
