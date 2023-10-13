@@ -10,7 +10,7 @@ contract QueryNftTest is Test {
     NftEnumerable public nftEnumerable;
 
     function setUp() public {
-        nftEnumerable = new NftEnumerable(address(this));  // Assumes the NftEnumerable contract takes the owner's address as a parameter
+        nftEnumerable = new NftEnumerable(address(this)); // Assumes the NftEnumerable contract takes the owner's address as a parameter
         queryNft = new QueryNft(nftEnumerable);
     }
 
@@ -20,7 +20,7 @@ contract QueryNftTest is Test {
     }
 
     function test_numOfPrimeTokenIds() public {
-        nftEnumerable.safeMint(address(this), 3);  // Assumes the safeMint function is available and public
+        nftEnumerable.safeMint(address(this), 3); // Assumes the safeMint function is available and public
         queryNft.updatePrimeMapping(3);
         assertEq(queryNft.numOfPrimeTokenIds(address(this)), 1);
     }
@@ -36,7 +36,7 @@ contract QueryNftTest is Test {
     }
 
     function testFuzz_updatePrimeMapping(uint256 tokenId) public {
-        tokenId = tokenId % 1000 + 1;  // Keeping tokenId between 1 and 1000
+        tokenId = tokenId % 1000 + 1; // Keeping tokenId between 1 and 1000
         queryNft.updatePrimeMapping(tokenId);
         assertEq(queryNft.isPrimeMapping(tokenId), queryNft.checkPrime(tokenId));
     }

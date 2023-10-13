@@ -41,22 +41,22 @@ contract NftStakingTest is Test {
     }
 
     function testFail_stakeNFT_nonExistentToken() public {
-        uint256 tokenId = 999;  // Assuming this token has not been minted
-        nftStaking.stakeNFT(tokenId);  // Should fail
+        uint256 tokenId = 999; // Assuming this token has not been minted
+        nftStaking.stakeNFT(tokenId); // Should fail
     }
 
     function testFail_unstakeNFT_notOwner() public {
         uint256 tokenId = 1;
-        nftStaking.unstakeNFT(tokenId);  // Assuming msg.sender is not the owner of the token. Should fail.
+        nftStaking.unstakeNFT(tokenId); // Assuming msg.sender is not the owner of the token. Should fail.
     }
 
     function testFail_claimReward_notOwner() public {
         uint256 tokenId = 1;
-        nftStaking.claimReward(tokenId);  // Assuming msg.sender is not the owner of the token. Should fail.
+        nftStaking.claimReward(tokenId); // Assuming msg.sender is not the owner of the token. Should fail.
     }
 
     function testFail_claimReward_stakedLessThanOneDay() public {
         uint256 tokenId = 1;
-        nftStaking.claimReward(tokenId);  // Assuming the token has been staked for less than 1 day. Should fail.
+        nftStaking.claimReward(tokenId); // Assuming the token has been staked for less than 1 day. Should fail.
     }
 }

@@ -48,29 +48,29 @@ contract RoyaltyNFTTest is Test {
         royaltyNFT.withdrawFunds(amount);
         assertEq(address(this).balance, amount);
     }
-    
+
     function testFail_mint_maxSupplyExceeded() public {
-        uint256 tokenId = 21;  // Assuming 20 tokens have already been minted
+        uint256 tokenId = 21; // Assuming 20 tokens have already been minted
         uint256 cost = 2 ether;
-        royaltyNFT.mint{value: cost}(tokenId, cost);  // Should fail
+        royaltyNFT.mint{value: cost}(tokenId, cost); // Should fail
     }
 
     function testFail_discountMint_alreadyMinted() public {
-        uint256 tokenId = 1;  // Assuming this token has already been discount minted
+        uint256 tokenId = 1; // Assuming this token has already been discount minted
         uint256 cost = 1 ether;
         bytes32[] memory proof = new bytes32[](0);
         uint256 index = 0;
-        royaltyNFT.discountMint{value: cost}(proof, index, tokenId, cost);  // Should fail
+        royaltyNFT.discountMint{value: cost}(proof, index, tokenId, cost); // Should fail
     }
 
     function testFail_secondaryBuy_insufficientValue() public {
         uint256 tokenId = 1;
-        uint256 buyPrice = 2 ether;  // Assuming the sale price is 3 ether
-        royaltyNFT.secondaryBuy{value: buyPrice}(tokenId);  // Should fail
+        uint256 buyPrice = 2 ether; // Assuming the sale price is 3 ether
+        royaltyNFT.secondaryBuy{value: buyPrice}(tokenId); // Should fail
     }
 
     function testFail_withdrawFunds_insufficientFunds() public {
-        uint256 amount = 10 ether;  // Assuming the contract balance is less than 10 ether
-        royaltyNFT.withdrawFunds(amount);  // Should fail
+        uint256 amount = 10 ether; // Assuming the contract balance is less than 10 ether
+        royaltyNFT.withdrawFunds(amount); // Should fail
     }
 }
