@@ -36,22 +36,19 @@ contract NftStaking is ERC721Holder {
 
     function unstakeNFT(uint256 tokenId) external {
         require(NftOwner[tokenId] == msg.sender, "You are not the NFT owner");
-        StakingRewardToken.mint(msg.sender, calculateAvailableReward(tokenId));
-        RoyaltyNFT.safeTransferFrom(address(this), msg.sender, tokenId);
+        uint256 reward = calculateAvailableReward(tokenId);
 
         delete NftOwner[tokenId];
         delete timeStakeWasInitiated[tokenId];
 
+        claimReward(tokenId);
+        RoyaltyNFT.safeTransferFrom(address(this), msg.sender, tokenId);
+
         emit NFTUnstaked(tokenId, msg.sender);
     }
 
-    function claimReward(uint256 tokenId) external {
+    function claimReward(uint256 tokenId) public {
         require(NftOwner[tokenId] == msg.sender, "You are not the NFT owner");
-
-        require(
-            block.timestamp - timeStakeWasInitiated[tokenId] >= 1 days,
-            "NFT staked for less than 24 hours or rewards claimed"
-        );
 
         StakingRewardToken.mint(msg.sender, calculateAvailableReward(tokenId));
 
