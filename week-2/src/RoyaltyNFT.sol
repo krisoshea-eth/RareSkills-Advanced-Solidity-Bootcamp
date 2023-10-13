@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts@4.3.2/token/ERC721/extensions/ERC721Royalty.sol";
-import "@openzeppelin/contracts@4.3.2/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts@4.3.2/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts@4.3.2/access/Ownable2Step.sol";
-import "@openzeppelin/contracts@4.3.2/utils/Counters.sol";
-import "@openzeppelin/contracts@4.3.2/utils/structs/BitMaps.sol";
-import "@openzeppelin/contracts@4.3.2/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/token/ERC721/extensions/ERC721Royalty.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/access/Ownable2Step.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/utils/structs/BitMaps.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/utils/cryptography/MerkleProof.sol";
 
 contract RoyaltyNFT is ERC721, ERC721Royalty, ERC721Enumerable, ERC721URIStorage, Ownable2Step {
     using Strings for uint256;

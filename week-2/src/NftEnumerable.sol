@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
-import "@openzeppelin/contracts@4.3.2/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts@4.3.2/access/Ownable2Step.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/access/Ownable2Step.sol";
 import "./QueryNft.sol";
 
 contract NftEnumerable is ERC721Enumerable, Ownable2Step {

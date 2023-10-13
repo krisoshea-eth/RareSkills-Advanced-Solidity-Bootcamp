@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
-import "@openzeppelin/contracts@4.3.2/token/ERC721/extensions/IERC721Enumerable.sol";
-import "@openzeppelin/contracts@4.3.2/access/Ownable2Step.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/access/Ownable2Step.sol";
 
 contract QueryNft is Ownable2Step {
     IERC721Enumerable public NftEnumerable;
@@ -18,11 +18,11 @@ contract QueryNft is Ownable2Step {
         NftEnumerable = _NftEnumerable;
     }
 
-    function numOfPrimeTokenIds(address user) external view returns (uint256) {
+    function numOfPrimeTokenIds(address user) external view returns (uint256 primeCounter) {
         uint256 NftBalance = NftEnumerable.balanceOf(user);
         uint256 primeCounter = 0;
         uint256 tokenId;
-        for (uint256 i = 0; i < NftBalance; i++) {
+        for (uint256 i = 0; i < NftBalance; ++i) {
             tokenId = NftEnumerable.tokenOfOwnerByIndex(user, i);
             if (isPrimeMapping[tokenId]) {
                 primeCounter += 1;

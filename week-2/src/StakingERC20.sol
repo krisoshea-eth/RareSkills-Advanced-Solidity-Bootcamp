@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts@4.3.2/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts@4.3.2/access/Ownable2Step.sol";
-import "@openzeppelin/contracts@4.3.2/access/AccessControl.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/access/Ownable2Step.sol";
+import "@openzeppelin/contracts@5.0.0/contracts/access/AccessControl.sol";
 
 contract StakingRewardToken is ERC20, Ownable2Step, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
