@@ -10,3 +10,6 @@
 [submodule "uniswap-v2/lib/prb-math"]
 	path = uniswap-v2/lib/prb-math
 	url = https://github.com/PaulRBerg/prb-math
+[submodule "uniswap-v2/lib/solmate"]
+	path = uniswap-v2/lib/solmate
+	url = https://github.com/transmissions11/solmate
