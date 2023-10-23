@@ -13,10 +13,12 @@ import "./lib/solmate/src/utils/SafeTransferLib.sol";
 
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, FlashLender {
     using UQ112x112 for uint224;
+    using SafeTransferLib for IERC20;
 
     uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes("transfer(address,uint256)")));
 
+    FlashLender public flashLender;
     address public factory;
     address public token0;
     address public token1;
@@ -61,14 +63,25 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, FlashLender {
         factory = msg.sender;
     }
 
-    // called once by the factory at time of deployment
+   /**
+     * @notice Initializes the pair with given tokens.
+     * @dev Only callable by the factory contract.
+     * @param _token0 Address of token0.
+     * @param _token1 Address of token1.
+     */
     function initialize(address _token0, address _token1) external {
         require(msg.sender == factory, "UniswapV2: FORBIDDEN"); // sufficient check
         token0 = _token0;
         token1 = _token1;
     }
 
-    // update reserves and, on the first call per block, price accumulators
+    **
+     * @notice Updates reserves and, on the first call per block, price accumulators.
+     * @param _balance0 Balance of token0.
+     * @param _balance1 Balance of token1.
+     * @param _reserve0 Previous reserve of token0.
+     * @param _reserve1 Previous reserve of token1.
+     */
     function _update(uint256 balance0, uint256 balance1, uint112 _reserve0, uint112 _reserve1) private {
         require(balance0 <= uint112(-1) && balance1 <= uint112(-1), "UniswapV2: OVERFLOW");
         uint32 blockTimestamp = uint32(block.timestamp % 2 ** 32);
@@ -190,26 +203,26 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, FlashLender {
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
+    /**
+     * @notice Initiates a flash swap.
+     * @param _token Address of the token to borrow.
+     * @param _amountToBorrow Amount to borrow.
+     * @param _data Data to pass to the callback function.
+     */
     function flashSwap(address token, uint256 amountToBorrow, bytes calldata data) external lock {
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
-        require(amountToBorrow < _reserve0 && amountToBorrow < _reserve1, "UniswapV2: INSUFFICIENT_LIQUIDITY");
+        // Check the reserves before the flash loan
+     (uint112 _reserve0, uint112 _reserve1,) = getReserves();
+     
+     // Ensure there's enough in reserve
+     require((token == token0 && amountToBorrow <= _reserve0) || (token == token1 && amountToBorrow <= _reserve1), "UniswapV2: INSUFFICIENT_RESERVES");
 
-        uint256 balance0;
-        uint256 balance1;
+     // Proceed with the flash loan
+     require(flashLender.flashLoan(IERC3156FlashBorrower(msg.sender), token, amountToBorrow, data), "Flash loan failed");
 
-        address _token0 = token0;
-        address _token1 = token1;
-
-        balance0 = IERC20(_token0).balanceOf(address(this));
-        balance1 = IERC20(_token1).balanceOf(address(this));
-
-        require(token == _token0 || token == _token1, "token address provided dosen't match token pair addresses");
-        if (data.length > 0) flashLoan(msg.sender, token, amountToBorrow, data);
-
-        require(IERC20(tokenBorrowed).balanceOf(address(this)) >= amountToBorrow);
-        _update(balance0, balance1, _reserve0, _reserve1);
-
-        emit FlashSwap(msg.sender, token, amountToBorrow);
+     // Update the reserves after the flash loan
+     _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), _reserve0, _reserve1);
+    
+     emit FlashSwap(msg.sender, token, amountToBorrow);
     }
     // force balances to match reserves
 

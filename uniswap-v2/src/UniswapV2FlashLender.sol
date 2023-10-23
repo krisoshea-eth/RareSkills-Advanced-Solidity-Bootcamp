@@ -19,7 +19,7 @@ contract FlashLender is IERC3156FlashLender {
      * @param fee_ The percentage of the loan `amount` that needs to be repaid, in addition to `amount`.
      */
     constructor(address[] memory supportedTokens_, uint256 fee_) {
-        for (uint256 i = 0; i < supportedTokens_.length; i++) {
+        for (uint256 i = 0; i < supportedTokens_.length; ++i) {
             supportedTokens[supportedTokens_[i]] = true;
         }
         fee = fee_;
@@ -44,7 +44,8 @@ contract FlashLender is IERC3156FlashLender {
             receiver.onFlashLoan(msg.sender, token, amount, fee, data) == CALLBACK_SUCCESS,
             "FlashLender: Callback failed"
         );
-        require(IERC20(token).transferFrom(address(receiver), address(this), amount + fee), "FlashLender: Repay failed");
+        uint256 repayment = amount + fee;
+        require(IERC20(token).transferFrom(address(receiver), address(this), repayment), "FlashLender: Repay failed");
         return true;
     }
 
