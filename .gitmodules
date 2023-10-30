@@ -13,3 +13,6 @@
 [submodule "uniswap-v2/lib/solmate"]
 	path = uniswap-v2/lib/solmate
 	url = https://github.com/transmissions11/solmate
+[submodule "uniswap-v2/lib/solady"]
+	path = uniswap-v2/lib/solady
+	url = https://github.com/vectorized/solady
