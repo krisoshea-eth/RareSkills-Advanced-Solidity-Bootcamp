@@ -4,3 +4,15 @@
 [submodule "week-2/lib/openzeppelin-contracts"]
 	path = week-2/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "uniswap-v2/lib/forge-std"]
+	path = uniswap-v2/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "uniswap-v2/lib/prb-math"]
+	path = uniswap-v2/lib/prb-math
+	url = https://github.com/PaulRBerg/prb-math
+[submodule "uniswap-v2/lib/solmate"]
+	path = uniswap-v2/lib/solmate
+	url = https://github.com/transmissions11/solmate
+[submodule "uniswap-v2/lib/solady"]
+	path = uniswap-v2/lib/solady
+	url = https://github.com/vectorized/solady
