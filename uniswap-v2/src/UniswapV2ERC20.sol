@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import "./interfaces/IUniswapV2ERC20.sol";
-import "./lib/solmate/src/utils/SafeTransferLib.sol";
+import "../lib/solmate/src/utils/SafeTransferLib.sol";
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
     string public constant name = "Uniswap V2";
@@ -23,7 +23,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     constructor() public {
         uint256 chainId;
         assembly {
-            chainId := chainid
+            chainId := chainid()
         }
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -79,6 +79,6 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(recoveredAddress != address(0) && recoveredAddress == owner, "UniswapV2: INVALID_SIGNATURE");
-        _approve(owner, spender, value);
+        SafeTransferLib.safeApprove(ERC20(address(this)), spender, value);
     }
 }

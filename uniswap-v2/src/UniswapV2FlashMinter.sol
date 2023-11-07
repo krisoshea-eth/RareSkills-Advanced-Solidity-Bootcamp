@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "../ERC20.sol";
-import "../interfaces/IERC20.sol";
-import "../interfaces/IERC3156FlashBorrower.sol";
-import "../interfaces/IERC3156FlashLender.sol";
+import "../lib/solady/src/tokens/ERC20.sol";
+import "./interfaces/IERC20.sol";
+import "./interfaces/IERC3156FlashBorrower.sol";
+import "./interfaces/IERC3156FlashLender.sol";
 
 /**
  * @author Alberto Cuesta Cañada
@@ -54,16 +54,16 @@ contract FlashMinter is ERC20, IERC3156FlashLender {
         returns (bool)
     {
         require(token == address(this), "FlashMinter: Unsupported currency");
-        uint256 fee = _flashFee(token, amount);
+        uint256 _fee = _flashFee(token, amount);
         _mint(address(receiver), amount);
         require(
-            receiver.onFlashLoan(msg.sender, token, amount, fee, data) == CALLBACK_SUCCESS,
+            receiver.onFlashLoan(msg.sender, token, amount, _fee, data) == CALLBACK_SUCCESS,
             "FlashMinter: Callback failed"
         );
         uint256 _allowance = allowance(address(receiver), address(this));
-        require(_allowance >= (amount + fee), "FlashMinter: Repay not approved");
-        _approve(address(receiver), address(this), _allowance - (amount + fee));
-        _burn(address(receiver), amount + fee);
+        require(_allowance >= (amount + _fee), "FlashMinter: Repay not approved");
+        _approve(address(receiver), address(this), _allowance - (amount + _fee));
+        _burn(address(receiver), amount + _fee);
         return true;
     }
 

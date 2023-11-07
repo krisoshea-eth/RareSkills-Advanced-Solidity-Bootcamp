@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "../interfaces/IERC20.sol";
-import "../interfaces/IERC3156FlashBorrower.sol";
-import "../interfaces/IERC3156FlashLender.sol";
+import "./interfaces/IERC20.sol";
+import "./interfaces/IERC3156FlashBorrower.sol";
+import "./interfaces/IERC3156FlashLender.sol";
 
 /**
  * @author Alberto Cuesta Cañada
  * @dev Extension of {ERC20} that allows flash lending.
  */
-contract FlashLender is IERC3156FlashLender {
+contract UniswapV2FlashLender is IERC3156FlashLender {
     bytes32 public constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
     mapping(address => bool) public supportedTokens;
     uint256 public fee; //  1 == 0.01 %.
@@ -38,13 +38,13 @@ contract FlashLender is IERC3156FlashLender {
         returns (bool)
     {
         require(supportedTokens[token], "FlashLender: Unsupported currency");
-        uint256 fee = _flashFee(token, amount);
+        uint256 _fee = _flashFee(token, amount);
         require(IERC20(token).transfer(address(receiver), amount), "FlashLender: Transfer failed");
         require(
-            receiver.onFlashLoan(msg.sender, token, amount, fee, data) == CALLBACK_SUCCESS,
+            receiver.onFlashLoan(msg.sender, token, amount, _fee, data) == CALLBACK_SUCCESS,
             "FlashLender: Callback failed"
         );
-        uint256 repayment = amount + fee;
+        uint256 repayment = amount + _fee;
         require(IERC20(token).transferFrom(address(receiver), address(this), repayment), "FlashLender: Repay failed");
         return true;
     }
